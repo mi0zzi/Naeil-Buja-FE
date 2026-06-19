@@ -6,23 +6,18 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-
         tabBarStyle: {
           height: 82,
           paddingTop: 8,
           paddingBottom: 10,
-
           backgroundColor: "#FFFFFF",
-
           borderTopWidth: 1,
           borderTopColor: "#EAE6DD",
         },
-
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",
         },
-
         tabBarActiveTintColor: "#6F8F57",
         tabBarInactiveTintColor: "#2D2D2D",
       }}
@@ -34,9 +29,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <Image
               source={require("../../assets/images/home.png")}
-              style={{
-                tintColor: focused ? "#6F8F57" : "#2D2D2D",
-              }}
+              style={{ tintColor: focused ? "#6F8F57" : "#2D2D2D" }}
               resizeMode="contain"
             />
           ),
@@ -50,9 +43,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <Image
               source={require("../../assets/images/calendar.png")}
-              style={{
-                tintColor: focused ? "#6F8F57" : "#2D2D2D",
-              }}
+              style={{ tintColor: focused ? "#6F8F57" : "#2D2D2D" }}
               resizeMode="contain"
             />
           ),
@@ -64,7 +55,6 @@ export default function TabLayout() {
         options={{
           title: "",
           tabBarLabel: () => null,
-
           tabBarIcon: () => (
             <Image
               source={require("../../assets/images/add.png")}
@@ -81,9 +71,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <Image
               source={require("../../assets/images/mission.png")}
-              style={{
-                tintColor: focused ? "#6F8F57" : "#2D2D2D",
-              }}
+              style={{ tintColor: focused ? "#6F8F57" : "#2D2D2D" }}
               resizeMode="contain"
             />
           ),
@@ -97,9 +85,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused }) => (
             <Image
               source={require("../../assets/images/mypage.png")}
-              style={{
-                tintColor: focused ? "#6F8F57" : "#2D2D2D",
-              }}
+              style={{ tintColor: focused ? "#6F8F57" : "#2D2D2D" }}
               resizeMode="contain"
             />
           ),
