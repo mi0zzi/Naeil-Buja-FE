@@ -1,90 +1,34 @@
+import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import BudgetCard from "./BudgetCard";
 import CharacterCard from "./CharacterCard";
 import SpeechBubble from "./SpeechBubble";
-import TodayMissionCard, { Mission } from "./TodayMissionCard";
+import TodayMissionCard from "./TodayMissionCard";
 
-type HomeResponse = {
-  nickname: string;
-  characterName: string;
-  monthlyBudget: number;
-  monthlySavingGoal: number;
-  monthlyExpenseAmount: number;
-  remainingBudget: number;
-  todayAvailableAmount: number;
-  point: number;
-  budgetStatus: "NORMAL" | "WARNING" | "DANGER";
-  speechBubble: {
-    type: string;
-    message: string;
-    level: string;
-  };
-  room: {
-    backgroundImageUrl: string;
-    appliedItems: {
-      itemId: number;
-      itemType: string;
-      name: string;
-      imageUrl: string;
-    }[];
-  };
-  todayMissions: Mission[];
-};
+import { getHomeData } from "../../../services/homeService";
+import { HomeResponse } from "../../../types/home";
 
 const TODAY_BUDGET = 25000;
-
-const homeData: HomeResponse = {
-  nickname: "민지",
-  characterName: "말랑이",
-  monthlyBudget: 600000,
-  monthlySavingGoal: 100000,
-  monthlyExpenseAmount: 243000,
-  remainingBudget: 357000,
-  todayAvailableAmount: 12500,
-  point: 12500,
-  budgetStatus: "NORMAL",
-  speechBubble: {
-    type: "NORMAL",
-    message: "... 우리 지금 절약 잘하고 있는 거 맞지?",
-    level: "INFO",
-  },
-  room: {
-    backgroundImageUrl: "/rooms/default-room.png",
-    appliedItems: [
-      {
-        itemId: 1,
-        itemType: "WALLPAPER",
-        name: "기본 벽지",
-        imageUrl: "/items/wallpaper-default.png",
-      },
-    ],
-  },
-  todayMissions: [
-    {
-      missionId: 1,
-      title: "오늘의 소비 기록하기",
-      description: "오늘 소비를 한 번 기록해 주세요.",
-      progress: 0,
-      targetCount: 1,
-      rewardPoint: 200,
-      status: "IN_PROGRESS",
-    },
-    {
-      missionId: 2,
-      title: "배달 시켜먹지 않기",
-      description: "오늘은 배달 대신 절약해봐요.",
-      progress: 0,
-      targetCount: 1,
-      rewardPoint: 300,
-      status: "IN_PROGRESS",
-    },
-  ],
-};
 
 const formatWon = (value: number) => `${value.toLocaleString()}원`;
 
 export default function HomeScreen() {
+  const [homeData, setHomeData] = useState<HomeResponse | null>(null);
+
+  useEffect(() => {
+    loadHomeData();
+  }, []);
+
+  const loadHomeData = async () => {
+    const data = await getHomeData();
+    setHomeData(data);
+  };
+
+  if (!homeData) {
+    return <View style={styles.screen} />;
+  }
+
   const monthlyProgress = homeData.remainingBudget / homeData.monthlyBudget;
   const todayProgress = homeData.todayAvailableAmount / TODAY_BUDGET;
 

@@ -1,17 +1,10 @@
-import { StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export type Mission = {
-  missionId: number;
-  title: string;
-  description: string;
-  progress: number;
-  targetCount: number;
-  rewardPoint: number;
-  status: "IN_PROGRESS" | "COMPLETED";
-};
+import { HomeMission } from "../../../types/home";
 
 type TodayMissionCardProps = {
-  missions: Mission[];
+  missions: HomeMission[];
   totalCount?: number;
 };
 
@@ -22,6 +15,22 @@ export default function TodayMissionCard({
   const completedCount = missions.filter(
     (mission) => mission.status === "COMPLETED",
   ).length;
+
+  const handlePressMission = (mission: HomeMission) => {
+    router.push({
+      pathname: "/mission/[id]",
+      params: {
+        id: String(mission.missionId),
+        title: mission.title,
+        description: mission.description,
+        reward: String(mission.rewardPoint),
+        progress: String(mission.progress),
+        targetCount: String(mission.targetCount),
+        status: mission.status,
+        guideSteps: JSON.stringify([]),
+      },
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -34,7 +43,14 @@ export default function TodayMissionCard({
 
       <View style={styles.missionList}>
         {missions.map((mission) => (
-          <View key={mission.missionId} style={styles.missionItem}>
+          <Pressable
+            key={mission.missionId}
+            style={({ pressed }) => [
+              styles.missionItem,
+              pressed && styles.pressedMissionItem,
+            ]}
+            onPress={() => handlePressMission(mission)}
+          >
             <Text style={styles.missionTitle} numberOfLines={1}>
               {mission.title}
             </Text>
@@ -44,7 +60,7 @@ export default function TodayMissionCard({
             </View>
 
             <Text style={styles.arrow}>›</Text>
-          </View>
+          </Pressable>
         ))}
       </View>
 
@@ -103,6 +119,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  pressedMissionItem: {
+    opacity: 0.75,
+  },
   missionTitle: {
     flex: 1,
     fontFamily: "PretendardSemiBold",
@@ -137,7 +156,6 @@ const styles = StyleSheet.create({
     bottom: 7,
     left: 0,
     right: 0,
-
     flexDirection: "row",
     justifyContent: "center",
     gap: 6,
