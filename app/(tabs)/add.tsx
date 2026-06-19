@@ -1,4 +1,4 @@
-import AddScreen from "../../src/screens/AddScreen";
+import AddScreen from "../../src/screens/main/AddScreen";
 
 export default function Page() {
   return <AddScreen />;
