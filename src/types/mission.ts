@@ -1,16 +1,16 @@
 export enum MissionStatus {
-  SCHEDULED = 'SCHEDULED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETABLE = 'COMPLETABLE',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
+  SCHEDULED = "SCHEDULED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETABLE = "COMPLETABLE",
+  COMPLETED = "COMPLETED",
+  FAILED = "FAILED",
 }
 
 export enum MissionType {
-  EXPENSE_RECORD = 'EXPENSE_RECORD',
-  AVOID_CATEGORY = 'AVOID_CATEGORY',
-  UNDER_DAILY_BUDGET = 'UNDER_DAILY_BUDGET',
-  UNDER_MONTHLY_BUDGET = 'UNDER_MONTHLY_BUDGET',
+  EXPENSE_RECORD = "EXPENSE_RECORD",
+  AVOID_CATEGORY = "AVOID_CATEGORY",
+  UNDER_DAILY_BUDGET = "UNDER_DAILY_BUDGET",
+  UNDER_MONTHLY_BUDGET = "UNDER_MONTHLY_BUDGET",
 }
 
 export interface MissionDTO {
@@ -23,7 +23,6 @@ export interface MissionDTO {
   rewardPoint: number;
   status: MissionStatus;
   pointReceived: boolean;
-  guideSteps: string[];
 }
 
 export interface MissionListResponseDTO {

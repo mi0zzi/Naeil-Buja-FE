@@ -19,20 +19,8 @@ export default function TodayMissionCard({
     (mission) => mission.status === MissionStatus.COMPLETED,
   ).length;
 
-  const handlePressMission = (mission: HomeMission) => {
-    router.push({
-      pathname: "/mission/[id]",
-      params: {
-        id: String(mission.missionId),
-        title: mission.title,
-        description: mission.description,
-        reward: String(mission.rewardPoint),
-        progress: String(mission.progress),
-        targetCount: String(mission.targetCount),
-        status: mission.status,
-        guideSteps: JSON.stringify([]),
-      },
-    });
+  const handlePressMission = () => {
+    router.push("/mission");
   };
 
   return (
@@ -52,7 +40,7 @@ export default function TodayMissionCard({
               styles.missionItem,
               pressed && styles.pressedMissionItem,
             ]}
-            onPress={() => handlePressMission(mission)}
+            onPress={handlePressMission}
           >
             <Text style={styles.missionTitle} numberOfLines={1}>
               {mission.title}

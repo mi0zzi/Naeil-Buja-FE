@@ -1,7 +1,6 @@
-import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Image,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,33 +8,130 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MissionDTO } from "../../types/mission";
 
 import MissionCard from "../../components/MissionCard";
+import MissionModal from "../../components/MissionModal";
 
-import { useEffect } from "react";
 import {
-  getDailyMissions,
-  getTodayMissions,
+  getMissionsByDate,
+  completeMission as requestCompleteMission,
 } from "../../services/missionService";
-import { MissionStatus } from "../../types/mission";
+
+import { MissionDTO, MissionStatus } from "../../types/mission";
 
 export default function MissionScreen() {
   const [selectedTab, setSelectedTab] = useState("today");
+  const [missionDate, setMissionDate] = useState("");
 
   const [todayMissions, setTodayMissions] = useState<MissionDTO[]>([]);
   const [dailyMissions, setDailyMissions] = useState<MissionDTO[]>([]);
+  const [selectedMission, setSelectedMission] = useState<MissionDTO | null>(
+    null,
+  );
 
   useEffect(() => {
     loadMissions();
   }, []);
 
-  const loadMissions = async () => {
-    const today = await getTodayMissions();
-    const daily = await getDailyMissions();
+  const getTodayDateString = () => {
+    const today = new Date();
 
-    setTodayMissions(today);
-    setDailyMissions(daily);
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const date = String(today.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${date}`;
+  };
+
+  const getErrorCode = (error: unknown) => {
+    if (typeof error === "object" && error !== null && "response" in error) {
+      const response = (error as any).response;
+      return response?.data?.errorCode;
+    }
+
+    return undefined;
+  };
+
+  const loadMissions = async () => {
+    try {
+      const today = getTodayDateString();
+      const response = await getMissionsByDate(today);
+
+      setMissionDate(response.date);
+      setTodayMissions(response.missions);
+      setDailyMissions(response.missions);
+    } catch (error) {
+      console.error("미션 조회 실패", error);
+
+      setTodayMissions([]);
+      setDailyMissions([]);
+
+      Alert.alert("오류", "미션을 불러오지 못했습니다.");
+    }
+  };
+
+  const updateMissionToCompleted = (
+    missionId: number,
+    status: MissionStatus,
+    rewardPoint: number,
+    pointReceived: boolean,
+  ) => {
+    const updateMission = (mission: MissionDTO) =>
+      mission.missionId === missionId
+        ? {
+            ...mission,
+            status,
+            rewardPoint,
+            pointReceived,
+          }
+        : mission;
+
+    setTodayMissions((prevMissions) => prevMissions.map(updateMission));
+    setDailyMissions((prevMissions) => prevMissions.map(updateMission));
+  };
+
+  const completeMission = async (missionId: number) => {
+    try {
+      const response = await requestCompleteMission(missionId, {
+        date: missionDate || getTodayDateString(),
+      });
+
+      updateMissionToCompleted(
+        response.missionId,
+        response.status,
+        response.rewardPoint,
+        response.pointReceived,
+      );
+
+      setSelectedMission(null);
+    } catch (error) {
+      console.error("미션 완료 실패", error);
+
+      const errorCode = getErrorCode(error);
+
+      switch (errorCode) {
+        case "MISSION_NOT_FOUND":
+          Alert.alert("오류", "미션을 찾을 수 없습니다.");
+          break;
+
+        case "MISSION_NOT_COMPLETABLE":
+          Alert.alert("알림", "아직 미션 완료 조건을 만족하지 못했습니다.");
+          break;
+
+        case "MISSION_ALREADY_COMPLETED":
+          Alert.alert("알림", "이미 완료한 미션입니다.");
+          setSelectedMission(null);
+          await loadMissions();
+          break;
+
+        case "FUTURE_MISSION_NOT_ALLOWED":
+          Alert.alert("알림", "미래 미션은 완료할 수 없습니다.");
+          break;
+
+        default:
+          Alert.alert("오류", "미션 완료에 실패했습니다.");
+      }
+    }
   };
 
   const completedTodayCount = todayMissions.filter(
@@ -48,22 +144,6 @@ export default function MissionScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={require("../../../assets/images/logo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-
-        <TouchableOpacity>
-          <Image
-            source={require("../../../assets/images/bell.png")}
-            style={styles.bell}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={selectedTab === "today" ? styles.activeTab : styles.tab}
@@ -126,20 +206,9 @@ export default function MissionScreen() {
 
               {todayMissions.map((mission) => (
                 <MissionCard
-                  key={mission.missionId}
+                  key={`today-${mission.missionId}`}
                   mission={mission}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/mission/[id]",
-                      params: {
-                        id: String(mission.missionId),
-                        title: mission.title,
-                        description: mission.description,
-                        reward: String(mission.rewardPoint),
-                        guideSteps: JSON.stringify(mission.guideSteps),
-                      },
-                    })
-                  }
+                  onPress={() => setSelectedMission(mission)}
                 />
               ))}
             </View>
@@ -159,26 +228,9 @@ export default function MissionScreen() {
 
               {dailyMissions.map((mission) => (
                 <MissionCard
-                  key={mission.missionId}
+                  key={`daily-${mission.missionId}`}
                   mission={mission}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/mission/[id]",
-                      params: {
-                        id: String(mission.missionId),
-                        title: mission.title,
-                        description: mission.description,
-                        reward: String(mission.rewardPoint),
-
-                        progress: String(mission.progress),
-                        targetCount: String(mission.targetCount),
-                        status: mission.status,
-                        missionType: mission.missionType,
-
-                        guideSteps: JSON.stringify(mission.guideSteps),
-                      },
-                    })
-                  }
+                  onPress={() => setSelectedMission(mission)}
                 />
               ))}
             </View>
@@ -188,7 +240,6 @@ export default function MissionScreen() {
         {selectedTab === "weekly" && (
           <View style={styles.section}>
             <Text style={styles.emptyTitle}>주간 미션</Text>
-
             <Text style={styles.emptyText}>주간 미션 API 연동 예정</Text>
           </View>
         )}
@@ -196,11 +247,18 @@ export default function MissionScreen() {
         {selectedTab === "monthly" && (
           <View style={styles.section}>
             <Text style={styles.emptyTitle}>월간 미션</Text>
-
             <Text style={styles.emptyText}>월간 미션 API 연동 예정</Text>
           </View>
         )}
       </ScrollView>
+
+      <MissionModal
+        visible={selectedMission !== null}
+        mission={selectedMission}
+        date={missionDate}
+        onClose={() => setSelectedMission(null)}
+        onComplete={completeMission}
+      />
     </SafeAreaView>
   );
 }
@@ -208,74 +266,47 @@ export default function MissionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F5F0",
-  },
-
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    marginBottom: 8,
-  },
-
-  logo: {
-    width: 100,
-    height: 32,
-  },
-
-  bell: {
-    width: 20,
-    height: 20,
+    backgroundColor: "#FEFBF6",
   },
 
   tabContainer: {
     flexDirection: "row",
-
     marginHorizontal: 16,
-    marginBottom: 12,
-
+    marginTop: -10,
+    marginBottom: 10,
     backgroundColor: "#FFFFFF",
-
     borderWidth: 1,
     borderColor: "#E8E3D8",
-
-    borderRadius: 14,
+    borderRadius: 10,
     padding: 4,
   },
 
   activeTab: {
     flex: 1,
-    height: 40,
-
-    borderRadius: 10,
-
-    backgroundColor: "#71935B",
-
+    height: 35,
+    borderRadius: 15,
+    backgroundColor: "#69885A",
     justifyContent: "center",
     alignItems: "center",
   },
 
   activeTabText: {
-    color: "#FFF",
-    fontSize: 14,
-    fontWeight: "700",
+    fontFamily: "PretendardSemiBold",
+    color: "#FFFFFF",
+    fontSize: 12,
   },
 
   tab: {
     flex: 1,
-    height: 40,
-
+    height: 32,
     justifyContent: "center",
     alignItems: "center",
   },
 
   tabText: {
+    fontFamily: "PretendardSemiBold",
     color: "#2D2D2D",
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 12,
   },
 
   scrollContent: {
@@ -284,64 +315,61 @@ const styles = StyleSheet.create({
   },
 
   section: {
-    backgroundColor: "#FFF",
-
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#E8E3D8",
-
-    borderRadius: 16,
-
-    padding: 14,
-
-    marginBottom: 14,
+    borderRadius: 10,
+    paddingHorizontal: 13,
+    paddingTop: 13,
+    paddingBottom: 5,
+    marginBottom: 8,
   },
 
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-
-    marginBottom: 10,
+    marginBottom: 17,
   },
 
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#2D2D2D",
+    fontFamily: "PretendardBold",
+    fontSize: 17,
+    color: "#35352C",
   },
 
   badge: {
     marginLeft: 8,
-
-    backgroundColor: "#E8EFDD",
-
-    borderRadius: 12,
-
+    backgroundColor: "#EFF2E4",
+    borderRadius: 50,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 5,
   },
 
   badgeText: {
-    fontSize: 10,
-    color: "#71935B",
-    fontWeight: "700",
+    fontFamily: "PretendardSemiBold",
+    fontSize: 9.5,
+    color: "#537842",
   },
 
   resetText: {
     marginLeft: "auto",
-
-    fontSize: 10,
-    color: "#9D9D9D",
+    fontFamily: "PretendardMedium",
+    fontSize: 9.5,
+    color: "#7E7A71",
   },
 
   emptyTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontFamily: "PretendardBold",
+    fontSize: 17,
+    color: "#35352C",
     textAlign: "center",
   },
 
   emptyText: {
     marginTop: 8,
+    fontFamily: "PretendardRegular",
+    fontSize: 12,
+    color: "#777777",
     textAlign: "center",
-    color: "#777",
   },
 });

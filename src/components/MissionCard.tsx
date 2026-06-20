@@ -1,4 +1,3 @@
-import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { MissionDTO, MissionStatus } from "../types/mission";
@@ -19,7 +18,9 @@ export default function MissionCard({ mission, onPress }: Props) {
     >
       <View style={styles.content}>
         <View style={styles.textArea}>
-          <Text style={styles.title}>{mission.title}</Text>
+          <Text style={styles.title} numberOfLines={1}>
+            {mission.title}
+          </Text>
 
           <Text style={styles.description} numberOfLines={1}>
             {mission.description}
@@ -31,14 +32,9 @@ export default function MissionCard({ mission, onPress }: Props) {
             <Text style={styles.checkText}>✓</Text>
           </View>
         ) : (
-          <TouchableOpacity
-            style={styles.rewardButton}
-            onPress={onPress}
-          >
-            <Text style={styles.rewardText}>
-              +{mission.rewardPoint}P
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.rewardButton}>
+            <Text style={styles.rewardText}>+{mission.rewardPoint}P</Text>
+          </View>
         )}
       </View>
     </TouchableOpacity>
@@ -47,25 +43,27 @@ export default function MissionCard({ mission, onPress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFF",
+    width: "100%",
+    height: 64,
+
+    backgroundColor: "#FFFFFF",
 
     borderWidth: 1,
-    borderColor: "#E8E3D8",
+    borderColor: "#EFF2E4",
 
-    borderRadius: 14,
+    borderRadius: 10,
 
-    minHeight: 72,
+    paddingLeft: 22,
+    paddingRight: 18,
 
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-
-    marginBottom: 8,
+    marginBottom: 9,
 
     justifyContent: "center",
   },
 
   completedCard: {
-    backgroundColor: "#F2F5EA",
+    backgroundColor: "#EFF2E4",
+    borderColor: "#EFF2E4",
   },
 
   content: {
@@ -82,48 +80,54 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     color: "#2D2D2D",
+
     marginBottom: 4,
   },
 
   description: {
     fontSize: 11,
+    fontWeight: "400",
     color: "#7C7C7C",
   },
 
   rewardButton: {
-    width: 66,
-    height: 30,
+    width: 53,
+    height: 24,
 
-    borderWidth: 1.5,
-    borderColor: "#D89E1E",
+    borderWidth: 1,
+    borderColor: "#E9B440",
 
     borderRadius: 15,
+
+    backgroundColor: "#FFF0D5",
 
     justifyContent: "center",
     alignItems: "center",
   },
 
   rewardText: {
-    color: "#D89E1E",
-    fontSize: 11,
+    color: "#96702A",
+    fontSize: 10,
     fontWeight: "700",
+    lineHeight: 18,
   },
 
   checkButton: {
-    width: 66,
-    height: 30,
+    width: 53,
+    height: 24,
 
     borderRadius: 15,
 
-    backgroundColor: "#71935B",
+    backgroundColor: "#5B7E47",
 
     justifyContent: "center",
     alignItems: "center",
   },
 
   checkText: {
-    color: "#FFF",
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
+    lineHeight: 20,
   },
 });
