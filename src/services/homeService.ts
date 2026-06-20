@@ -1,5 +1,8 @@
-import { homeMock } from "../mock/homeMock";
+import { api } from "../api/client";
+import { HomeResponseDTO } from "../types/home";
 
-export async function getHomeData() {
-  return homeMock;
+export async function getHomeData(): Promise<HomeResponseDTO> {
+  const response = await api.get<HomeResponseDTO>("/api/home");
+
+  return response.data;
 }

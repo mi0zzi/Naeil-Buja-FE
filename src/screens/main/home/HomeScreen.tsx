@@ -7,14 +7,12 @@ import SpeechBubble from "./SpeechBubble";
 import TodayMissionCard from "./TodayMissionCard";
 
 import { getHomeData } from "../../../services/homeService";
-import { HomeResponse } from "../../../types/home";
-
-const TODAY_BUDGET = 25000;
+import { HomeResponseDTO } from "../../../types/home";
 
 const formatWon = (value: number) => `${value.toLocaleString()}원`;
 
 export default function HomeScreen() {
-  const [homeData, setHomeData] = useState<HomeResponse | null>(null);
+  const [homeData, setHomeData] = useState<HomeResponseDTO | null>(null);
 
   useEffect(() => {
     loadHomeData();
@@ -30,7 +28,7 @@ export default function HomeScreen() {
   }
 
   const monthlyProgress = homeData.remainingBudget / homeData.monthlyBudget;
-  const todayProgress = homeData.todayAvailableAmount / TODAY_BUDGET;
+  const visibleTodayMissions = homeData.todayMissions.slice(0, 2);
 
   return (
     <View style={styles.screen}>
@@ -49,8 +47,8 @@ export default function HomeScreen() {
           <BudgetCard
             title="오늘 사용 가능한 금액"
             amount={homeData.todayAvailableAmount}
-            helperText={`오늘 예산 ${formatWon(TODAY_BUDGET)}`}
-            progressRate={todayProgress}
+            helperText="오늘 예산"
+            progressRate={1}
           />
         </View>
 
@@ -73,7 +71,7 @@ export default function HomeScreen() {
           message={homeData.speechBubble.message}
         />
 
-        <TodayMissionCard missions={homeData.todayMissions} />
+        <TodayMissionCard missions={visibleTodayMissions} />
       </ScrollView>
     </View>
   );

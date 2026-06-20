@@ -1,16 +1,6 @@
-export type HomeMissionStatus = "IN_PROGRESS" | "COMPLETED";
+import { MissionStatus } from "./mission";
 
-export type HomeMission = {
-  missionId: number;
-  title: string;
-  description: string;
-  progress: number;
-  targetCount: number;
-  rewardPoint: number;
-  status: HomeMissionStatus;
-};
-
-export type HomeResponse = {
+export interface HomeResponseDTO {
   nickname: string;
   characterName: string;
   monthlyBudget: number;
@@ -34,5 +24,13 @@ export type HomeResponse = {
       imageUrl: string;
     }[];
   };
-  todayMissions: HomeMission[];
-};
+  todayMissions: {
+    missionId: number;
+    title: string;
+    description: string;
+    progress: number;
+    targetCount: number;
+    rewardPoint: number;
+    status: MissionStatus;
+  }[];
+}

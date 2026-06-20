@@ -1,6 +1,7 @@
-import { HomeResponse } from "../types/home";
+import { HomeResponseDTO } from "../types/home";
+import { MissionStatus } from "../types/mission";
 
-export const homeMock: HomeResponse = {
+export const homeMock: HomeResponseDTO = {
   nickname: "민지",
   characterName: "말랑이",
   monthlyBudget: 600000,
@@ -34,7 +35,7 @@ export const homeMock: HomeResponse = {
       progress: 0,
       targetCount: 1,
       rewardPoint: 200,
-      status: "IN_PROGRESS",
+      status: MissionStatus.IN_PROGRESS,
     },
     {
       missionId: 2,
@@ -43,7 +44,7 @@ export const homeMock: HomeResponse = {
       progress: 0,
       targetCount: 1,
       rewardPoint: 300,
-      status: "IN_PROGRESS",
+      status: MissionStatus.IN_PROGRESS,
     },
   ],
 };

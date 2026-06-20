@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   bubble: {
-    width: 200,
+    width: 250,
     height: 32,
     borderWidth: 1,
     borderColor: "#E1E5D3",

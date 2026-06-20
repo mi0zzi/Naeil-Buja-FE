@@ -1,7 +1,10 @@
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { HomeMission } from "../../../types/home";
+import { HomeResponseDTO } from "../../../types/home";
+import { MissionStatus } from "../../../types/mission";
+
+type HomeMission = HomeResponseDTO["todayMissions"][number];
 
 type TodayMissionCardProps = {
   missions: HomeMission[];
@@ -13,7 +16,7 @@ export default function TodayMissionCard({
   totalCount = 4,
 }: TodayMissionCardProps) {
   const completedCount = missions.filter(
-    (mission) => mission.status === "COMPLETED",
+    (mission) => mission.status === MissionStatus.COMPLETED,
   ).length;
 
   const handlePressMission = (mission: HomeMission) => {
