@@ -1,3 +1,5 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
+import axios from "axios";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
@@ -14,58 +16,85 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { createExpense } from "../../../services/addService";
+import { ApiErrorResponseDTO } from "../../../types/add";
+import AmountInput from "./AmountInput";
+import CategoryButton from "./CategoryButton";
+
 const categories = [
   {
     code: "FOOD",
     label: "식비",
-    icon: require("../../../assets/images/categories/food.png"),
+    icon: require("../../../../assets/images/categories/food.png"),
   },
   {
     code: "DELIVERY",
     label: "배달",
-    icon: require("../../../assets/images/categories/delivery.png"),
+    icon: require("../../../../assets/images/categories/delivery.png"),
   },
   {
     code: "CAFE",
     label: "카페",
-    icon: require("../../../assets/images/categories/cafe.png"),
+    icon: require("../../../../assets/images/categories/cafe.png"),
   },
   {
     code: "TRANSPORT",
     label: "교통",
-    icon: require("../../../assets/images/categories/transport.png"),
+    icon: require("../../../../assets/images/categories/transport.png"),
   },
   {
     code: "SHOPPING",
     label: "쇼핑",
-    icon: require("../../../assets/images/categories/shopping.png"),
+    icon: require("../../../../assets/images/categories/shopping.png"),
   },
   {
     code: "CONVENIENCE",
     label: "편의점",
-    icon: require("../../../assets/images/categories/convenience.png"),
+    icon: require("../../../../assets/images/categories/convenience.png"),
   },
   {
     code: "MEETING",
     label: "약속",
-    icon: require("../../../assets/images/categories/meeting.png"),
+    icon: require("../../../../assets/images/categories/meeting.png"),
   },
   {
     code: "ETC",
     label: "기타",
-    icon: require("../../../assets/images/categories/etc.png"),
+    icon: require("../../../../assets/images/categories/etc.png"),
   },
 ];
 
 const TODAY_AVAILABLE_AMOUNT = 25000;
 
+const formatDate = (date: Date) => {
+  const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const dayName = dayNames[date.getDay()];
+
+  return `${year}.${month}.${day} (${dayName})`;
+};
+
+const formatDateForRequest = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
 export default function AddScreen() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
+  const [expenseDate, setExpenseDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const formattedAmount = useMemo(() => {
-    if (!amount) return "0";
+    if (!amount) return "";
     return Number(amount).toLocaleString();
   }, [amount]);
 
@@ -77,7 +106,15 @@ export default function AddScreen() {
     setAmount(value.replace(/[^0-9]/g, ""));
   };
 
-  const handleSave = () => {
+  const handleChangeDate = (_: unknown, selectedDate?: Date) => {
+    setShowDatePicker(false);
+
+    if (selectedDate) {
+      setExpenseDate(selectedDate);
+    }
+  };
+
+  const handleSave = async () => {
     if (!selectedCategory) {
       Alert.alert("알림", "카테고리를 선택해주세요.");
       return;
@@ -88,15 +125,52 @@ export default function AddScreen() {
       return;
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const selectedDate = new Date(expenseDate);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate > today) {
+      Alert.alert("알림", "아직 기록할 수 없는 날짜입니다.");
+      return;
+    }
+
     const expenseData = {
       amount: Number(amount),
       categoryCode: selectedCategory,
-      memo,
-      expenseDate: new Date().toISOString().split("T")[0],
+      memo: memo.trim(),
+      expenseDate: formatDateForRequest(expenseDate),
     };
 
-    console.log("지출 등록 데이터", expenseData);
-    Alert.alert("저장 준비 완료", "백엔드 연결 후 실제 저장이 진행됩니다.");
+    try {
+      setIsSaving(true);
+
+      const data = await createExpense(expenseData);
+
+      console.log("소비 등록 성공:", data);
+
+      Alert.alert("저장 완료", "소비 기록이 저장되었습니다.", [
+        {
+          text: "확인",
+          onPress: () => router.back(),
+        },
+      ]);
+    } catch (error) {
+      console.log("소비 등록 실패:", error);
+
+      if (axios.isAxiosError<ApiErrorResponseDTO>(error)) {
+        Alert.alert(
+          "저장 실패",
+          error.response?.data.message ?? "소비 기록 저장에 실패했습니다.",
+        );
+        return;
+      }
+
+      Alert.alert("저장 실패", "알 수 없는 오류가 발생했습니다.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -122,79 +196,57 @@ export default function AddScreen() {
             <View style={styles.headerPlaceholder} />
           </View>
 
-          <TouchableOpacity activeOpacity={0.85} style={styles.dateCard}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.dateCard}
+            onPress={() => setShowDatePicker(true)}
+          >
             <Image
-              source={require("../../../assets/images/addCalender.png")}
+              source={require("../../../../assets/images/addCalender.png")}
               style={styles.dateIcon}
               resizeMode="contain"
             />
 
             <View style={styles.dateTextArea}>
               <Text style={styles.dateLabel}>날짜</Text>
-              <Text style={styles.dateValue}>2026.06.20 (토)</Text>
+              <Text style={styles.dateValue}>{formatDate(expenseDate)}</Text>
             </View>
 
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
 
+          {showDatePicker && (
+            <DateTimePicker
+              value={expenseDate}
+              mode="date"
+              display={Platform.OS === "ios" ? "compact" : "default"}
+              onChange={handleChangeDate}
+            />
+          )}
+
           <Text style={styles.sectionTitle}>카테고리</Text>
 
           <View style={styles.categoryGrid}>
-            {categories.map((category) => {
-              const isSelected = selectedCategory === category.code;
-
-              return (
-                <TouchableOpacity
-                  key={category.code}
-                  activeOpacity={0.85}
-                  onPress={() => setSelectedCategory(category.code)}
-                  style={[
-                    styles.categoryItem,
-                    isSelected && styles.selectedCategoryItem,
-                  ]}
-                >
-                  <Image
-                    source={category.icon}
-                    style={styles.categoryIcon}
-                    resizeMode="contain"
-                  />
-
-                  <Text
-                    style={[
-                      styles.categoryLabel,
-                      isSelected && styles.selectedCategoryLabel,
-                    ]}
-                  >
-                    {category.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <View style={styles.amountCard}>
-            <Text style={styles.amountLabel}>금액</Text>
-
-            <View style={styles.amountInputRow}>
-              <Text style={styles.wonSymbol}>₩</Text>
-
-              <TextInput
-                value={formattedAmount}
-                onChangeText={handleAmountChange}
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor="#A7AAA4"
-                style={styles.amountInput}
+            {categories.map((category) => (
+              <CategoryButton
+                key={category.code}
+                label={category.label}
+                icon={category.icon}
+                selected={selectedCategory === category.code}
+                onPress={() => setSelectedCategory(category.code)}
               />
-
-              <Text style={styles.amountUnit}>원</Text>
-            </View>
+            ))}
           </View>
+
+          <AmountInput
+            value={formattedAmount}
+            onChangeText={handleAmountChange}
+          />
 
           <View style={styles.budgetInfoCard}>
             <View style={styles.budgetInfoItem}>
               <Image
-                source={require("../../../assets/images/wallet.png")}
+                source={require("../../../../assets/images/wallet.png")}
                 style={styles.walletIcon}
                 resizeMode="contain"
               />
@@ -229,10 +281,13 @@ export default function AddScreen() {
 
           <TouchableOpacity
             activeOpacity={0.85}
-            style={styles.saveButton}
+            style={[styles.saveButton, isSaving && styles.disabledSaveButton]}
             onPress={handleSave}
+            disabled={isSaving}
           >
-            <Text style={styles.saveButtonText}>저장하기</Text>
+            <Text style={styles.saveButtonText}>
+              {isSaving ? "저장 중..." : "저장하기"}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -281,19 +336,19 @@ const styles = StyleSheet.create({
     width: 34,
   },
   dateCard: {
-    height: 68,
+    height: 56,
     marginTop: 20,
     paddingHorizontal: 20,
     borderWidth: 1,
-    borderColor: "#9CAD8A",
+    borderColor: "#A2AA89",
     borderRadius: 10,
-    backgroundColor: "#FFFDF7",
+    backgroundColor: "#FEFBF6",
     flexDirection: "row",
     alignItems: "center",
   },
   dateIcon: {
-    width: 34,
-    height: 34,
+    width: 29,
+    height: 29,
     marginRight: 14,
   },
   dateTextArea: {
@@ -301,13 +356,13 @@ const styles = StyleSheet.create({
   },
   dateLabel: {
     fontFamily: "PretendardBold",
-    fontSize: 12,
+    fontSize: 10,
     color: "#6F8F57",
   },
   dateValue: {
-    marginTop: 5,
-    fontFamily: "PretendardBold",
-    fontSize: 21,
+    marginTop: 2,
+    fontFamily: "PretendardSemiBold",
+    fontSize: 16,
     color: "#35352C",
   },
   chevron: {
@@ -327,80 +382,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     rowGap: 16,
   },
-  categoryItem: {
-    width: "22%",
-    height: 88,
-    borderWidth: 1,
-    borderColor: "#EFECE6",
-    borderRadius: 8,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  selectedCategoryItem: {
-    borderColor: "#6F8F57",
-    backgroundColor: "#F2F7EB",
-  },
-  categoryIcon: {
-    width: 36,
-    height: 36,
-  },
-  categoryLabel: {
-    marginTop: 8,
-    fontFamily: "PretendardMedium",
-    fontSize: 12,
-    color: "#35352C",
-  },
-  selectedCategoryLabel: {
-    fontFamily: "PretendardBold",
-    color: "#557A45",
-  },
-  amountCard: {
-    height: 146,
-    marginTop: 18,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    borderWidth: 1,
-    borderColor: "#9CAD8A",
-    borderRadius: 10,
-    backgroundColor: "#FFFDF7",
-  },
-  amountLabel: {
-    fontFamily: "PretendardBold",
-    fontSize: 16,
-    color: "#6F8F57",
-  },
-  amountInputRow: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  wonSymbol: {
-    marginRight: 12,
-    fontFamily: "PretendardBold",
-    fontSize: 40,
-    color: "#35352C",
-  },
-  amountInput: {
-    flex: 1,
-    fontFamily: "PretendardRegular",
-    fontSize: 40,
-    color: "#35352C",
-    padding: 0,
-  },
-  amountUnit: {
-    fontFamily: "PretendardBold",
-    fontSize: 18,
-    color: "#557A45",
-  },
   budgetInfoCard: {
-    height: 78,
+    height: 65,
     marginTop: 20,
     paddingHorizontal: 18,
     borderWidth: 1,
-    borderColor: "#9CAD8A",
+    borderColor: "#A2AA89",
     borderRadius: 10,
-    backgroundColor: "#FFFDF7",
+    backgroundColor: "#F6F3EB",
     flexDirection: "row",
     alignItems: "center",
   },
@@ -416,50 +405,54 @@ const styles = StyleSheet.create({
   },
   divider: {
     width: 1,
-    height: 48,
+    height: 36,
     marginHorizontal: 18,
     backgroundColor: "#9CAD8A",
   },
   budgetLabel: {
     fontFamily: "PretendardBold",
-    fontSize: 12,
+    fontSize: 11,
     color: "#6F8F57",
   },
   budgetValue: {
-    marginTop: 5,
+    marginTop: 4,
     fontFamily: "PretendardBold",
-    fontSize: 20,
+    fontSize: 17,
     color: "#35352C",
   },
   memoTitle: {
     marginTop: 26,
     marginBottom: 10,
-    fontFamily: "PretendardBold",
+    fontFamily: "PretendardSemiBold",
     fontSize: 14,
     color: "#35352C",
   },
   memoInput: {
-    height: 60,
+    height: 50,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "#9CAD8A",
+    borderColor: "#A2AA89",
     borderRadius: 10,
-    backgroundColor: "#FFFDF7",
+    backgroundColor: "#FEFBF6",
     fontFamily: "PretendardRegular",
-    fontSize: 13,
-    color: "#35352C",
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#7E7A71",
   },
   saveButton: {
-    height: 60,
-    marginTop: 20,
+    height: 50,
+    marginTop: 15,
     borderRadius: 10,
-    backgroundColor: "#5B874A",
+    backgroundColor: "#587E47",
     alignItems: "center",
     justifyContent: "center",
   },
+  disabledSaveButton: {
+    opacity: 0.6,
+  },
   saveButtonText: {
     fontFamily: "PretendardBold",
-    fontSize: 20,
+    fontSize: 15,
     color: "#FFFFFF",
   },
 });

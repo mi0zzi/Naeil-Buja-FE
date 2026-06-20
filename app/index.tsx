@@ -1,3 +1,3 @@
-import OnboardingScreen from "../src/screens/onboarding/OnboardingScreen";
+import LandingScreen from "../src/screens/auth/LandingScreen";
 
-export default OnboardingScreen;
+export default LandingScreen;

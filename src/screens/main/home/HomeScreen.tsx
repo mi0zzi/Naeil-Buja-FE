@@ -47,7 +47,7 @@ export default function HomeScreen() {
           <BudgetCard
             title="오늘 사용 가능한 금액"
             amount={homeData.todayAvailableAmount}
-            helperText="오늘 예산"
+            helperText={`오늘 예산 ${formatWon(homeData.todayAvailableAmount)}`}
             progressRate={1}
           />
         </View>
