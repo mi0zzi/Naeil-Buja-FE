@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import BudgetCard from "./BudgetCard";
@@ -14,9 +15,11 @@ const formatWon = (value: number) => `${value.toLocaleString()}원`;
 export default function HomeScreen() {
   const [homeData, setHomeData] = useState<HomeResponseDTO | null>(null);
 
-  useEffect(() => {
-    loadHomeData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadHomeData();
+    }, []),
+  );
 
   const loadHomeData = async () => {
     const data = await getHomeData();

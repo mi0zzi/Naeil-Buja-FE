@@ -138,8 +138,8 @@ const styles = StyleSheet.create({
   },
 
   icon: {
-    width: 54,
-    height: 54,
+    width: 52,
+    height: 52,
 
     marginBottom: 10,
   },
