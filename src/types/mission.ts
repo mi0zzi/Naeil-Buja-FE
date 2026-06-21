@@ -28,7 +28,8 @@ export interface MissionDTO {
 export interface MissionListResponseDTO {
   date: string;
   isFuture: boolean;
-  missions: MissionDTO[];
+  todayMissions: MissionDTO[];
+  dailyMissions: MissionDTO[];
 }
 
 export interface MissionCompleteRequestDTO {

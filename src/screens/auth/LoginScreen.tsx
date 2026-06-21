@@ -1,7 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -9,6 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { login } from "../../services/authService";
 
 const LOGO_IMAGE = require("../../../assets/images/NaeilBujaLogov2.png");
 
@@ -19,9 +24,34 @@ export default function LoginScreen() {
   const [isAutoLogin, setIsAutoLogin] = useState(false);
 
   const handleLogin = async () => {
-    // await login({ loginId, password });
+    if (!loginId.trim() || !password.trim()) {
+      Alert.alert("알림", "아이디와 비밀번호를 입력해주세요.");
+      return;
+    }
 
-    router.replace("/onboarding");
+    try {
+      const data = await login({ loginId, password });
+
+      await AsyncStorage.setItem("accessToken", data.accessToken);
+
+      router.replace("/onboarding");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorCode = error.response?.data?.errorCode;
+
+        if (errorCode === "MEMBER_NOT_FOUND") {
+          Alert.alert("로그인 실패", "존재하지 않는 계정입니다.");
+          return;
+        }
+
+        if (errorCode === "INVALID_PASSWORD") {
+          Alert.alert("로그인 실패", "비밀번호가 일치하지 않습니다.");
+          return;
+        }
+      }
+
+      Alert.alert("로그인 실패", "잠시 후 다시 시도해주세요.");
+    }
   };
 
   return (

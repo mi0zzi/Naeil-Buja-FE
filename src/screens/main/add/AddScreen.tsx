@@ -174,7 +174,7 @@ export default function AddScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={[]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -184,16 +184,10 @@ export default function AddScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} activeOpacity={0.8}>
-              <Text style={styles.backIcon}>‹</Text>
-            </TouchableOpacity>
-
             <View style={styles.titleArea}>
               <Text style={styles.title}>지출 입력</Text>
               <Text style={styles.subtitle}>사용한 금액을 기록해 주세요!</Text>
             </View>
-
-            <View style={styles.headerPlaceholder} />
           </View>
 
           <TouchableOpacity
@@ -309,9 +303,7 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
   },
   header: {
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
   },
   backIcon: {
     fontSize: 34,

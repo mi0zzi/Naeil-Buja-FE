@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +18,22 @@ import {
 } from "../../types/calendar";
 
 const WEEK_DAYS = ["일", "월", "화", "수", "목", "금", "토"];
+
+const categoryIcons: Record<string, any> = {
+  식비: require("../../../assets/images/categories/food.png"),
+  배달: require("../../../assets/images/categories/delivery.png"),
+  카페: require("../../../assets/images/categories/cafe.png"),
+  교통: require("../../../assets/images/categories/transport.png"),
+  쇼핑: require("../../../assets/images/categories/shopping.png"),
+  편의점: require("../../../assets/images/categories/convenience.png"),
+  약속: require("../../../assets/images/categories/meeting.png"),
+  기타: require("../../../assets/images/categories/etc.png"),
+};
+
+const summaryIcons = {
+  totalExpense: require("../../../assets/images/totalExpenseIcon.png"),
+  budgetRatio: require("../../../assets/images/calendarIcon.png"),
+};
 
 const formatWon = (value: number) => `${value.toLocaleString()}원`;
 
@@ -100,11 +117,15 @@ export default function CalendarScreen() {
   }
 
   const calendarDates = getCalendarDates(currentMonth);
-
   const selectedMonth = currentMonth.getMonth();
   const selectedDay = Number(selectedDate.slice(8, 10));
-
+  const selectedDayName = WEEK_DAYS[new Date(selectedDate).getDay()];
   const dayMap = new Map(monthData.days.map((day) => [day.date, day]));
+
+  const budgetRatio = Math.round(
+    (monthData.summary.monthlyExpenseAmount / monthData.summary.monthlyBudget) *
+      100,
+  );
 
   return (
     <View style={styles.screen}>
@@ -113,7 +134,7 @@ export default function CalendarScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.monthHeader}>
-          <TouchableOpacity onPress={() => moveMonth(-1)}>
+          <TouchableOpacity onPress={() => moveMonth(-1)} activeOpacity={0.7}>
             <Text style={styles.arrow}>‹</Text>
           </TouchableOpacity>
 
@@ -121,7 +142,7 @@ export default function CalendarScreen() {
             {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
           </Text>
 
-          <TouchableOpacity onPress={() => moveMonth(1)}>
+          <TouchableOpacity onPress={() => moveMonth(1)} activeOpacity={0.7}>
             <Text style={styles.arrow}>›</Text>
           </TouchableOpacity>
         </View>
@@ -148,6 +169,7 @@ export default function CalendarScreen() {
                 <TouchableOpacity
                   key={dateKey}
                   style={styles.dateCell}
+                  activeOpacity={0.75}
                   onPress={() => setSelectedDate(dateKey)}
                 >
                   <View
@@ -168,10 +190,10 @@ export default function CalendarScreen() {
                     </Text>
                   </View>
 
-                  {dayData?.hasExpense && <View style={styles.expenseDot} />}
-                  {dayData?.hasCompletedMission && (
-                    <View style={styles.missionDot} />
-                  )}
+                  <View style={styles.dotArea}>
+                    {dayData?.hasExpense && <View style={styles.expenseDot} />}
+                    {dayData?.hasCompletedMission}
+                  </View>
                 </TouchableOpacity>
               );
             })}
@@ -181,7 +203,9 @@ export default function CalendarScreen() {
         <View style={styles.detailCard}>
           <View style={styles.detailHeader}>
             <View style={styles.detailTitleRow}>
-              <Text style={styles.detailDate}>6월 {selectedDay}일</Text>
+              <Text style={styles.detailDate}>
+                6월 {selectedDay}일 ({selectedDayName})
+              </Text>
 
               <View style={styles.budgetBadge}>
                 <Text style={styles.budgetBadgeText}>
@@ -200,11 +224,25 @@ export default function CalendarScreen() {
           ) : (
             dayDetail.expenses.map((expense) => (
               <View key={expense.expenseId} style={styles.expenseRow}>
-                <View>
-                  <Text style={styles.expenseCategory}>
-                    {expense.categoryName}
-                  </Text>
-                  <Text style={styles.expenseMemo}>{expense.memo}</Text>
+                <View style={styles.expenseLeft}>
+                  <Image
+                    source={
+                      categoryIcons[expense.categoryName] ??
+                      categoryIcons["기타"]
+                    }
+                    style={styles.expenseIcon}
+                    resizeMode="contain"
+                  />
+
+                  <View>
+                    <Text style={styles.expenseCategory}>
+                      {expense.categoryName}
+                    </Text>
+
+                    {!!expense.memo && (
+                      <Text style={styles.expenseMemo}>{expense.memo}</Text>
+                    )}
+                  </View>
                 </View>
 
                 <Text style={styles.expenseAmount}>
@@ -220,35 +258,46 @@ export default function CalendarScreen() {
             <Text style={styles.summaryTitle}>6월 한눈에 보기</Text>
 
             <View style={styles.reportButton}>
-              <Text style={styles.reportButtonText}>생활 리포트 ›</Text>
+              <Text style={styles.reportButtonText}>월간 리포트 ›</Text>
             </View>
           </View>
 
           <View style={styles.summaryRow}>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>총 지출</Text>
-              <Text style={styles.summaryGreen}>
-                {formatWon(monthData.summary.monthlyExpenseAmount)}
-              </Text>
+            <Image
+              source={summaryIcons.totalExpense}
+              style={styles.summaryIcon}
+              resizeMode="contain"
+            />
+
+            <View style={styles.summaryMainGroup}>
+              <View style={styles.summaryTextItem}>
+                <Text style={styles.summaryLabel}>총 지출</Text>
+                <Text style={styles.summaryGreen}>
+                  {formatWon(monthData.summary.monthlyExpenseAmount)}
+                </Text>
+              </View>
+
+              <View style={styles.summaryTextItem}>
+                <Text style={styles.summaryLabel}>절약한 금액</Text>
+                <Text style={styles.summaryGreen}>
+                  {formatWon(monthData.summary.remainingBudget)}
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>절약한 금액</Text>
-              <Text style={styles.summaryGreen}>
-                {formatWon(monthData.summary.remainingBudget)}
-              </Text>
-            </View>
+            <View style={styles.summaryDivider} />
 
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryLabel}>예산 대비</Text>
-              <Text style={styles.summaryOrange}>
-                {Math.round(
-                  (monthData.summary.monthlyExpenseAmount /
-                    monthData.summary.monthlyBudget) *
-                    100,
-                )}
-                %
-              </Text>
+            <View style={styles.budgetRatioItem}>
+              <Image
+                source={summaryIcons.budgetRatio}
+                style={styles.summaryIcon}
+                resizeMode="contain"
+              />
+
+              <View style={styles.budgetRatioTextArea}>
+                <Text style={styles.summaryLabel}>예산 대비</Text>
+                <Text style={styles.summaryOrange}>{budgetRatio}%</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -263,9 +312,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFDF7",
   },
   content: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    paddingBottom: 24,
+    paddingHorizontal: 16,
+    paddingTop: 6,
+    paddingBottom: 18,
   },
   monthHeader: {
     flexDirection: "row",
@@ -274,23 +323,24 @@ const styles = StyleSheet.create({
   },
   arrow: {
     fontFamily: "PretendardBold",
-    fontSize: 22,
+    fontSize: 24,
+    lineHeight: 26,
     color: "#9C9C9C",
   },
   monthTitle: {
     marginHorizontal: 8,
     fontFamily: "PretendardBold",
-    fontSize: 15,
+    fontSize: 16,
     color: "#333333",
   },
   calendarCard: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 11,
     paddingTop: 14,
-    paddingBottom: 12,
+    paddingBottom: 5,
     borderWidth: 1,
     borderColor: "#F0EAE0",
     borderRadius: 10,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FDFBFB",
   },
   weekRow: {
     flexDirection: "row",
@@ -300,8 +350,8 @@ const styles = StyleSheet.create({
     width: `${100 / 7}%`,
     textAlign: "center",
     fontFamily: "PretendardBold",
-    fontSize: 9,
-    color: "#777777",
+    fontSize: 10,
+    color: "#555555",
   },
   dateGrid: {
     flexDirection: "row",
@@ -309,22 +359,22 @@ const styles = StyleSheet.create({
   },
   dateCell: {
     width: `${100 / 7}%`,
-    height: 42,
+    height: 50,
     alignItems: "center",
   },
   dateCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
   },
   selectedDateCircle: {
-    backgroundColor: "#8CAA7B",
+    backgroundColor: "#789669",
   },
   dateText: {
     fontFamily: "PretendardBold",
-    fontSize: 12,
+    fontSize: 13,
     color: "#222222",
   },
   selectedDateText: {
@@ -334,24 +384,21 @@ const styles = StyleSheet.create({
     color: "#D3D3D3",
   },
   sundayText: {
-    color: "#EF4444",
+    color: "#FF3B30",
+  },
+  dotArea: {
+    height: 22,
+    alignItems: "center",
+    justifyContent: "center",
   },
   expenseDot: {
-    width: 4,
-    height: 4,
-    marginTop: 2,
-    borderRadius: 2,
-    backgroundColor: "#5F8D4E",
-  },
-  missionDot: {
-    width: 4,
-    height: 4,
-    marginTop: 2,
-    borderRadius: 2,
-    backgroundColor: "#E9A23B",
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#587E47",
   },
   detailCard: {
-    marginTop: 20,
+    marginTop: 28,
     borderWidth: 1,
     borderColor: "#F0EAE0",
     borderRadius: 10,
@@ -359,9 +406,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   detailHeader: {
-    height: 38,
+    height: 40,
     paddingHorizontal: 12,
-    backgroundColor: "#EFF4EA",
+    backgroundColor: "#F2F4ED",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -372,7 +419,7 @@ const styles = StyleSheet.create({
   },
   detailDate: {
     fontFamily: "PretendardBold",
-    fontSize: 12,
+    fontSize: 14,
     color: "#333333",
   },
   budgetBadge: {
@@ -380,38 +427,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 20,
-    backgroundColor: "#DDEBD3",
+    borderWidth: 0.5,
+    borderColor: "#B7C7AF",
+    backgroundColor: "#E6EBDE",
   },
   budgetBadgeText: {
     fontFamily: "PretendardBold",
     fontSize: 8,
-    color: "#6D965D",
+    color: "#4E6C3D",
   },
   detailTotal: {
     fontFamily: "PretendardBold",
-    fontSize: 10,
-    color: "#537842",
+    fontSize: 11,
+    color: "#4E6C3D",
   },
   expenseRow: {
-    minHeight: 44,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    height: 47,
+    paddingHorizontal: 14,
     borderTopWidth: 1,
     borderTopColor: "#F0EAE0",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
+  expenseLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  expenseIcon: {
+    width: 19,
+    height: 19,
+    marginRight: 13,
+  },
   expenseCategory: {
     fontFamily: "PretendardBold",
-    fontSize: 12,
+    fontSize: 13,
     color: "#333333",
   },
   expenseMemo: {
-    marginTop: 3,
+    marginTop: 1,
     fontFamily: "PretendardRegular",
     fontSize: 10,
-    color: "#9C9C9C",
+    color: "#B5B5B5",
   },
   expenseAmount: {
     fontFamily: "PretendardBold",
@@ -427,7 +484,9 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     marginTop: 14,
-    padding: 14,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 14,
     borderWidth: 1,
     borderColor: "#F0EAE0",
     borderRadius: 10,
@@ -440,41 +499,70 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontFamily: "PretendardBold",
-    fontSize: 13,
-    color: "#333333",
+    fontSize: 14,
+    color: "#34352C",
   },
   reportButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     borderRadius: 20,
-    backgroundColor: "#EFF4EA",
+    borderWidth: 0.5,
+    borderColor: "#B7C7AF",
+    backgroundColor: "#E6EBDE",
   },
   reportButtonText: {
     fontFamily: "PretendardBold",
     fontSize: 9,
-    color: "#7D9F6E",
+    color: "#4E6C3D",
   },
   summaryRow: {
-    marginTop: 18,
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  summaryIcon: {
+    width: 46,
+    height: 46,
+  },
+  summaryMainGroup: {
+    flex: 1,
+    marginLeft: 9,
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  summaryItem: {
-    gap: 3,
+  summaryTextItem: {
+    width: 72,
+  },
+  summaryDivider: {
+    width: 1,
+    height: 42,
+    marginLeft: 8,
+    marginRight: 8,
+    backgroundColor: "#E8E1D6",
+  },
+  budgetRatioItem: {
+    width: 94,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  budgetRatioTextArea: {
+    marginLeft: 7,
   },
   summaryLabel: {
     fontFamily: "PretendardBold",
-    fontSize: 9,
-    color: "#777777",
+    fontSize: 10,
+    color: "#4D4E46",
   },
   summaryGreen: {
+    marginTop: 3,
     fontFamily: "PretendardBold",
-    fontSize: 14,
-    color: "#57934D",
+    fontSize: 12,
+    color: "#587E47",
   },
   summaryOrange: {
+    marginTop: 3,
     fontFamily: "PretendardBold",
     fontSize: 14,
-    color: "#C9892B",
+    color: "#AA7B30",
   },
 });

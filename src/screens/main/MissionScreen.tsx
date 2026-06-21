@@ -58,8 +58,8 @@ export default function MissionScreen() {
       const response = await getMissionsByDate(today);
 
       setMissionDate(response.date);
-      setTodayMissions(response.missions);
-      setDailyMissions(response.missions);
+      setTodayMissions(response.todayMissions ?? []);
+      setDailyMissions(response.dailyMissions ?? []);
     } catch (error) {
       console.error("미션 조회 실패", error);
 
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   activeTabText: {
     fontFamily: "PretendardSemiBold",
     color: "#FFFFFF",
-    fontSize: 12,
+    fontSize: 13,
   },
 
   tab: {
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontFamily: "PretendardSemiBold",
     color: "#2D2D2D",
-    fontSize: 12,
+    fontSize: 13,
   },
 
   scrollContent: {

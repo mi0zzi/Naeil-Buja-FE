@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Image, View } from "react-native";
+import { Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import AppHeader from "../../src/components/common/AppHeader";
@@ -34,7 +34,7 @@ export default function TabLayout() {
               fontWeight: "600",
             },
 
-            tabBarActiveTintColor: "#6F8F57",
+            tabBarActiveTintColor: "#587E47",
             tabBarInactiveTintColor: "#2D2D2D",
           }}
         >
@@ -46,7 +46,7 @@ export default function TabLayout() {
                 <Image
                   source={require("../../assets/images/home.png")}
                   style={{
-                    tintColor: focused ? "#6F8F57" : "#2D2D2D",
+                    tintColor: focused ? "#587E47" : "#2D2D2D",
                   }}
                   resizeMode="contain"
                 />
@@ -62,7 +62,7 @@ export default function TabLayout() {
                 <Image
                   source={require("../../assets/images/calendar.png")}
                   style={{
-                    tintColor: focused ? "#6F8F57" : "#2D2D2D",
+                    tintColor: focused ? "#587E47" : "#2D2D2D",
                   }}
                   resizeMode="contain"
                 />
@@ -76,10 +76,36 @@ export default function TabLayout() {
               title: "",
               tabBarLabel: () => null,
               tabBarIcon: () => (
-                <Image
-                  source={require("../../assets/images/add.png")}
-                  resizeMode="contain"
-                />
+                <View
+                  style={{
+                    width: 43,
+                    height: 42,
+                    borderRadius: 28,
+                    backgroundColor: "#587E47",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: 10,
+                    shadowColor: "#000",
+                    shadowOffset: {
+                      width: 0,
+                      height: 2,
+                    },
+                    shadowOpacity: 0.12,
+                    shadowRadius: 4,
+                    elevation: 4,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: "PretendardSemiBold",
+                      fontSize: 42,
+                      lineHeight: 42,
+                      color: "#FFFFFF",
+                    }}
+                  >
+                    +
+                  </Text>
+                </View>
               ),
             }}
           />
@@ -92,7 +118,7 @@ export default function TabLayout() {
                 <Image
                   source={require("../../assets/images/mission.png")}
                   style={{
-                    tintColor: focused ? "#6F8F57" : "#2D2D2D",
+                    tintColor: focused ? "#587E47" : "#2D2D2D",
                   }}
                   resizeMode="contain"
                 />
@@ -108,7 +134,7 @@ export default function TabLayout() {
                 <Image
                   source={require("../../assets/images/mypage.png")}
                   style={{
-                    tintColor: focused ? "#6F8F57" : "#2D2D2D",
+                    tintColor: focused ? "#587E47" : "#2D2D2D",
                   }}
                   resizeMode="contain"
                 />
