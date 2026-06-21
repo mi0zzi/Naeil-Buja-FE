@@ -1,3 +1,4 @@
+import axios from "axios";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -12,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import NextButton from "../../components/NextButton";
+import { saveOnboarding } from "../../services/onboardingService";
 
 import AmountInput from "./AmountInput";
 import TextInput from "./TextInput";
@@ -65,7 +67,7 @@ export default function OnboardingScreen() {
     }
   };
 
-  const goNext = () => {
+  const goNext = async () => {
     if (step === 1 && !nickname.trim()) {
       Alert.alert("알림", "닉네임을 입력해 주세요.");
       return;
@@ -81,10 +83,43 @@ export default function OnboardingScreen() {
       return;
     }
 
-    // TODO: 온보딩 저장 API 구현 후 saveOnboarding 연결
-    // 요청 필드명:
-    // nickname, characterName, monthlyBudget, monthlySavingGoal, fixedExpense
-    router.replace("/(tabs)");
+    try {
+      await saveOnboarding({
+        nickname,
+        characterName,
+        monthlyBudget: Number(monthlyBudget),
+        monthlySavingGoal: Number(monthlySavingGoal),
+        fixedExpense: Number(fixedExpense),
+      });
+
+      router.replace("/(tabs)");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorCode = error.response?.data?.errorCode;
+
+        if (errorCode === "EMPTY_NICKNAME") {
+          Alert.alert("온보딩 실패", "닉네임을 입력해 주세요.");
+          return;
+        }
+
+        if (errorCode === "EMPTY_CHARACTER_NAME") {
+          Alert.alert("온보딩 실패", "말랑이 이름을 입력해 주세요.");
+          return;
+        }
+
+        if (errorCode === "INVALID_BUDGET") {
+          Alert.alert("온보딩 실패", "올바른 예산을 입력해 주세요.");
+          return;
+        }
+
+        if (errorCode === "ALREADY_ONBOARDED") {
+          router.replace("/(tabs)");
+          return;
+        }
+      }
+
+      Alert.alert("온보딩 실패", "잠시 후 다시 시도해주세요.");
+    }
   };
 
   return (

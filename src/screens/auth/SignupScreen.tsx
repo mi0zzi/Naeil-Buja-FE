@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -9,6 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { signup } from "../../services/authService";
 
 const LOGO_IMAGE = require("../../../assets/images/NaeilBujaLogov2.png");
 
@@ -20,9 +24,42 @@ export default function SignupScreen() {
   const [isPasswordConfirmHidden, setIsPasswordConfirmHidden] = useState(true);
 
   const handleSignup = async () => {
-    // await signup({ loginId, password, passwordConfirm });
+    if (!loginId.trim() || !password.trim() || !passwordConfirm.trim()) {
+      Alert.alert("알림", "모든 항목을 입력해주세요.");
+      return;
+    }
 
-    router.replace("/login");
+    if (password !== passwordConfirm) {
+      Alert.alert("회원가입 실패", "비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    try {
+      await signup({
+        loginId,
+        password,
+        passwordConfirm,
+      });
+
+      Alert.alert("회원가입 완료", "로그인 화면으로 이동합니다.");
+      router.replace("/login");
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorCode = error.response?.data?.errorCode;
+
+        if (errorCode === "PASSWORD_MISMATCH") {
+          Alert.alert("회원가입 실패", "비밀번호가 일치하지 않습니다.");
+          return;
+        }
+
+        if (errorCode === "DUPLICATED_LOGIN_ID") {
+          Alert.alert("회원가입 실패", "이미 사용 중인 아이디입니다.");
+          return;
+        }
+      }
+
+      Alert.alert("회원가입 실패", "잠시 후 다시 시도해주세요.");
+    }
   };
 
   return (

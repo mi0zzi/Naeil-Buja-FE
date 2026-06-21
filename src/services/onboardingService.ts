@@ -1,13 +1,16 @@
-import { onboardingMockResponse } from "../mock/onboardingMock";
+import { api } from "../api/client";
 import {
     OnboardingRequestDTO,
     OnboardingResponseDTO,
 } from "../types/onboarding";
 
 export async function saveOnboarding(
-  data: OnboardingRequestDTO,
+  body: OnboardingRequestDTO,
 ): Promise<OnboardingResponseDTO> {
-  console.log("ONBOARDING MOCK REQUEST:", data);
+  const response = await api.post<OnboardingResponseDTO>(
+    "/api/onboarding",
+    body,
+  );
 
-  return onboardingMockResponse;
+  return response.data;
 }
