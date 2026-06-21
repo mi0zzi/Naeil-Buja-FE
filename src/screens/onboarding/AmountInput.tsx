@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   },
   description: {
     marginTop: 12,
-    marginBottom: 48,
+    marginBottom: 24,
     fontFamily: "PretendardSemiBold",
     fontSize: 11,
     color: "#111111",
