@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Image, Text, View } from "react-native";
+import { Image, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import AppHeader from "../../src/components/common/AppHeader";
@@ -19,21 +19,18 @@ export default function TabLayout() {
         <Tabs
           screenOptions={{
             headerShown: false,
-
             tabBarStyle: {
               height: 82,
-              paddingTop: 8,
-              paddingBottom: 10,
+              paddingTop: 6,
+              paddingBottom: 8,
               backgroundColor: "#FFFFFF",
               borderTopWidth: 1,
               borderTopColor: "#EAE6DD",
             },
-
             tabBarLabelStyle: {
               fontSize: 11,
               fontWeight: "600",
             },
-
             tabBarActiveTintColor: "#587E47",
             tabBarInactiveTintColor: "#2D2D2D",
           }}
@@ -44,10 +41,12 @@ export default function TabLayout() {
               title: "홈",
               tabBarIcon: ({ focused }) => (
                 <Image
-                  source={require("../../assets/images/home.png")}
-                  style={{
-                    tintColor: focused ? "#587E47" : "#2D2D2D",
-                  }}
+                  source={
+                    focused
+                      ? require("../../assets/images/tabbar/home-active.png")
+                      : require("../../assets/images/tabbar/home.png")
+                  }
+                  style={{ width: 17, height: 17 }}
                   resizeMode="contain"
                 />
               ),
@@ -60,10 +59,12 @@ export default function TabLayout() {
               title: "캘린더",
               tabBarIcon: ({ focused }) => (
                 <Image
-                  source={require("../../assets/images/calendar.png")}
-                  style={{
-                    tintColor: focused ? "#587E47" : "#2D2D2D",
-                  }}
+                  source={
+                    focused
+                      ? require("../../assets/images/tabbar/calendar-active.png")
+                      : require("../../assets/images/tabbar/calendar.png")
+                  }
+                  style={{ width: 17, height: 17 }}
                   resizeMode="contain"
                 />
               ),
@@ -76,36 +77,15 @@ export default function TabLayout() {
               title: "",
               tabBarLabel: () => null,
               tabBarIcon: () => (
-                <View
+                <Image
+                  source={require("../../assets/images/tabbar/add.png")}
                   style={{
-                    width: 43,
-                    height: 42,
-                    borderRadius: 28,
-                    backgroundColor: "#587E47",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginTop: 10,
-                    shadowColor: "#000",
-                    shadowOffset: {
-                      width: 0,
-                      height: 2,
-                    },
-                    shadowOpacity: 0.12,
-                    shadowRadius: 4,
-                    elevation: 4,
+                    width: 40,
+                    height: 40,
+                    marginTop: 9,
                   }}
-                >
-                  <Text
-                    style={{
-                      fontFamily: "PretendardSemiBold",
-                      fontSize: 42,
-                      lineHeight: 42,
-                      color: "#FFFFFF",
-                    }}
-                  >
-                    +
-                  </Text>
-                </View>
+                  resizeMode="contain"
+                />
               ),
             }}
           />
@@ -116,10 +96,12 @@ export default function TabLayout() {
               title: "미션",
               tabBarIcon: ({ focused }) => (
                 <Image
-                  source={require("../../assets/images/mission.png")}
-                  style={{
-                    tintColor: focused ? "#587E47" : "#2D2D2D",
-                  }}
+                  source={
+                    focused
+                      ? require("../../assets/images/tabbar/mission-active.png")
+                      : require("../../assets/images/tabbar/mission.png")
+                  }
+                  style={{ width: 17, height: 17 }}
                   resizeMode="contain"
                 />
               ),
@@ -132,10 +114,8 @@ export default function TabLayout() {
               title: "마이페이지",
               tabBarIcon: ({ focused }) => (
                 <Image
-                  source={require("../../assets/images/mypage.png")}
-                  style={{
-                    tintColor: focused ? "#587E47" : "#2D2D2D",
-                  }}
+                  source={require("../../assets/images/tabbar/mypage.png")}
+                  style={{ width: 17, height: 17 }}
                   resizeMode="contain"
                 />
               ),
