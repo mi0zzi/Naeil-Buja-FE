@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "https://stucco-pavilion-pony.ngrok-free.dev",
+  baseURL: "https://untwist-malformed-cause.ngrok-free.dev",
   headers: {
     "Content-Type": "application/json",
     "ngrok-skip-browser-warning": "true",
